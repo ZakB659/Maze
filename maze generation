@@ -1,0 +1,215 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+
+
+class Program
+{
+
+    struct Visited
+    {
+        public int visitedx;
+        public int visitedy;
+    }
+
+    static bool Check4walls(string[,] maze, int xpos, int ypos, ref bool stuck, int x, int y)
+    {
+        bool good = false;
+        stuck = false;
+        if (xpos <= 0 || xpos >= x || ypos <= 0 || ypos >= y)
+        {
+
+        }
+        else if (maze[xpos + 1, ypos] == "1" && maze[xpos - 1, ypos] == "1" && maze[xpos, ypos + 1] == "1" && maze[xpos, ypos - 1] == "1")
+        {
+            good = true;
+        }
+        else
+        {
+            stuck = true;
+        }
+        return good;
+    }
+
+    static void Main(string[] args)
+    {
+
+        //variables        
+        int x_amount = 0;
+        int y_amount = 0;
+        getinput(ref x_amount, ref y_amount);
+        string[,] maze = new string[x_amount + 2, y_amount + 2];
+        int possible_moves = 0;
+        int startx = 0;
+        int stary = 1;
+        int tot_moves = 0;
+        int xpostemp = 0;
+        int ypostemp = 0;
+
+        if (x_amount %2 == 1){x_amount--;}
+        if (y_amount %2 == 1){y_amount--;}       
+        possible_moves = (x_amount * y_amount) / 4; 
+        //generation       
+        initialise(ref maze, x_amount, y_amount);
+        randommovement(ref xpostemp, ref ypostemp);
+        moving(ref maze, xpostemp, ypostemp, startx, stary, tot_moves, possible_moves, x_amount, y_amount);
+
+        Console.Clear();
+        maze[x_amount - 1, y_amount] = "0"; 
+
+        Console.WriteLine();
+        if (y_amount % 2 == 0){ y_amount++;}
+        if (x_amount % 2 ==0){ x_amount++;}
+
+        for (int w = 0; w < y_amount; w++)
+        {
+            for (int i = 0; i < x_amount; i++)
+            {
+                if (maze[i, w] == "1")
+                {
+                    Console.BackgroundColor = ConsoleColor.White;
+                    Console.Write(" ");
+                }
+                else
+                {
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    Console.Write(" ");
+                }
+            }
+            Console.WriteLine();
+        }
+        Console.ReadLine();
+    }
+
+    private static void getinput(ref int x_amount, ref int y_amount)
+    {
+        Console.WriteLine("What is your x value");
+        x_amount = int.Parse(Console.ReadLine());
+        Console.WriteLine();
+        Console.WriteLine("What is your y amount");
+        y_amount = int.Parse(Console.ReadLine());
+    }
+
+    static void solve()
+    {
+        //a* algoritm
+    }
+
+    static void randommovement(ref int xpostemp, ref int ypostemp)
+    {
+        Random RNG = new Random();
+
+        int random = RNG.Next(0, 5);
+
+
+        switch (random)
+        {
+            case 1:
+                xpostemp = -1;
+                ypostemp = 0;
+                break;
+            case 2:
+                xpostemp = 0;
+                ypostemp = 1;
+                break;
+            case 3:
+                xpostemp = 1;
+                ypostemp = 0;
+                break;
+            case 4:
+                xpostemp = 0;
+                ypostemp = -1;
+                break;
+        }
+    }
+
+    static void moving(ref string[,] maze, int xpostemp, int ypostemp, int xpos, int ypos, int totalmoves, int possiblemoves, int x, int y)
+    {
+        Visited[] stru = new Visited[x * y];
+
+        bool good = false;
+        int temp = 0;
+        maze[xpos, ypos] = "0";
+        xpos++;
+        totalmoves++;
+        int p = 0;
+        bool stuck = true;
+
+        while (totalmoves < possiblemoves)
+        {
+            xpos = xpos + (xpostemp * 2);
+            ypos = ypos + (ypostemp * 2);
+
+            good = Check4walls(maze, xpos, ypos, ref stuck, x, y); ;
+
+            if (good == true)
+            {
+                maze[xpos - xpostemp, ypos - ypostemp] = "0";
+                totalmoves++;
+                stru[p].visitedx = xpos;
+                stru[p].visitedy = ypos;
+                temp = 0;
+            }
+            else if (stuck == true)
+            {
+                try
+                {
+                    int t = p - 1;
+                    while (!good)
+                    {
+                        xpos = stru[t].visitedx;
+                        ypos = stru[t].visitedy;
+                        good = Check4walls(maze, xpos, ypos, ref stuck, x, y);
+                        if (stuck ==true){ t--;}
+                    }
+                }
+                catch
+                {
+                }
+            }
+            else
+            {
+                xpos = xpos - (xpostemp * 2);
+                ypos = ypos - (ypostemp * 2);
+            }
+            randommovement(ref xpostemp, ref ypostemp);
+        }
+
+    }
+
+
+    static void initialise(ref string[,] maze, int x, int y) // reads in from file a 50 * 50 grid and adds to an array
+    {
+        if (x % 2 == 0) { x++; }
+        if (y % 2 == 0) { y++; }
+        int tempx = 0;
+        int tempy = 0;
+        int tempo = 0;
+
+        for (int i = 0; i < x / 2; i++)
+        {
+            for (int u = 0; u < y; u++)
+            {
+                maze[tempx, tempy] = "1";
+                if (tempo % 2 == 1) { maze[tempx + 1, tempo] = "0"; }
+                else { maze[tempx + 1, tempo] = "1"; }
+                tempy++;
+                tempo++;
+            }
+            maze[tempx + 1, tempo] = "1";
+            tempx = tempx + 2;
+            tempy = 0;
+            tempo = 0;
+        }
+
+        for (int i = 0; i < y; i++)
+        {
+            maze[tempx, i] = "1";
+        }
+    }
+
+
+}
+
+
